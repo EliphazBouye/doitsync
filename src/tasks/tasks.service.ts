@@ -1,41 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { Task } from './interfaces/tasks.interface';
+import { PrismaService } from 'src/database/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [
-    {
-      title: "Simple task 0", 
-      description: "This is a simple a task 0", 
-      done: false, 
-    },
-    {
-      title: "Make API", 
-      description: "Should create a simple api", 
-      done: false, 
-    },
-  ]
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor() {}
-
-  findAll(): Task[] {
-    return this.tasks;
+  async findAll(): Promise<Task[]> {
+    return await this.prisma.task.findMany();
   }
 
-  findOne(id: number): Task {
-    return this.tasks[id];
+  async findOne(taskWhereUniqueInput: Prisma.TaskWhereUniqueInput): Promise<Task> {
+    return await this.prisma.task.findUnique({ where: taskWhereUniqueInput });
   }
 
-  create(data: Task) {
-    return this.tasks.push(data); 
+  async create(data: Prisma.TaskCreateInput): Promise<Task> {
+    return await this.prisma.task.create({ data }); 
   }
 
-  update(id: number, updateData: Task): Task {
-    this.tasks.splice(id, 1, updateData);
-    return this.tasks[id];
+  async update(params: {
+    where: Prisma.TaskWhereUniqueInput,
+    data: Prisma.TaskUpdateInput
+  }): Promise<Task> {
+    const { where, data } = params;
+    return await this.prisma.task.update({
+      where,
+      data,
+    });
   }
 
-  delete(id: number) {
-    return this.tasks.splice(id, 1)
+  delete(where: Prisma.TaskWhereUniqueInput) {
+    return this.prisma.task.delete({
+      where
+    });
   }
 }
