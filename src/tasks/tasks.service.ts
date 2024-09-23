@@ -15,7 +15,6 @@ export class TasksService {
     try {
       return await this.prisma.task.findUniqueOrThrow({ where: taskWhereUniqueInput });
     } catch (error) {
-      console.log(error)
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
           throw new NotFoundException(error.message);
@@ -25,11 +24,10 @@ export class TasksService {
     }
   }
 
-  async create(data: Prisma.TaskCreateInput): Promise<Task> {
+  async create(data: Prisma.TaskCreateInput) {
     try {
-      return await this.prisma.task.create({ data });
+      await this.prisma.task.create({ data });
     } catch (error) {
-      console.error(error)
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           if (error.meta.target instanceof Array) {
@@ -55,7 +53,6 @@ export class TasksService {
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.log(error)
         if (error.code === 'P2025') {
           throw new BadRequestException(error.meta?.cause);
         }
