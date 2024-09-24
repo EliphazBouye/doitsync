@@ -9,13 +9,13 @@ export class TasksController {
   constructor(private tasksService: TasksService) { }
 
   @Get()
-  async findAll(): Promise<Task[]> {
-    return await this.tasksService.findAll();
+  async getAllTasks(): Promise<Task[]> {
+    return await this.tasksService.getAllTasks();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Task> {
-    return await this.tasksService.findOne({ id });
+  async getOneTask(@Param('id', ParseIntPipe) id: number): Promise<Task> {
+    return await this.tasksService.getOneTask({ id });
   }
 
   @Post()

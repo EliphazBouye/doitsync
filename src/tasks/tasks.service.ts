@@ -7,11 +7,11 @@ import { Prisma } from '@prisma/client';
 export class TasksService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll(): Promise<Task[]> {
+  async getAllTasks(): Promise<Task[]> {
     return await this.prisma.task.findMany();
   }
 
-  async findOne(taskWhereUniqueInput: Prisma.TaskWhereUniqueInput): Promise<Task> {
+  async getOneTask(taskWhereUniqueInput : Prisma.TaskWhereUniqueInput): Promise<Task> {
     try {
       return await this.prisma.task.findUniqueOrThrow({ where: taskWhereUniqueInput });
     } catch (error) {

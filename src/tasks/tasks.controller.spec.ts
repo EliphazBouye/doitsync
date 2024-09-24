@@ -46,25 +46,25 @@ describe('TasksController', () => {
   });
 
   it('should return list of tasks', async () => {
-    jest.spyOn(service, 'findAll').mockImplementation(async () => tasks);
+    jest.spyOn(service, 'getAllTasks').mockImplementation(async () => tasks);
 
-    expect(await controller.findAll()).toBe(tasks);
+    expect(await controller.getAllTasks()).toBe(tasks);
   });
 
   it('should return exception from get bad id', async () => {
-    await expect(controller.findOne(50)).rejects.toThrow(NotFoundException);
+    await expect(controller.getOneTask(50)).rejects.toThrow(NotFoundException);
   });
 
   it('should return on task, get from his id', async () => {
-    jest.spyOn(service, 'findOne').mockImplementation(async () => tasks[0]);
+    jest.spyOn(service, 'getOneTask').mockImplementation(async () => tasks[0]);
 
-    expect(await controller.findOne(0)).toBe(tasks[0]);
-    expect(await service.findOne({ id: 0 })).toBe(tasks[0]);
+    expect(await controller.getOneTask(0)).toBe(tasks[0]);
+    expect(await service.getOneTask({ id: 0 })).toBe(tasks[0]);
   });
 
   it('update a task', async () => {
     jest.spyOn(controller, 'update').mockImplementation(async () => taskUpdated);
-    jest.spyOn(controller, 'findOne').mockImplementation(async () => taskUpdated);
+    jest.spyOn(controller, 'getOneTask').mockImplementation(async () => taskUpdated);
 
     expect(await controller.update(1, {
       title: 'test title updated',
@@ -73,7 +73,7 @@ describe('TasksController', () => {
     }))
       .toBe(taskUpdated);
 
-    expect(await controller.findOne(1)).toBe(taskUpdated);
+    expect(await controller.getOneTask(1)).toBe(taskUpdated);
   })
 
   it('return exception in update in case of bad task id', async () => {
