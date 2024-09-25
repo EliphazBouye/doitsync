@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TasksService } from './tasks.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { Task } from './interfaces/tasks.interface';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
 
@@ -173,6 +173,57 @@ describe('TasksService', () => {
       expect(mockPrisma.task.delete).toHaveBeenCalledTimes(1);
       expect(mockPrisma.task.delete).toHaveBeenCalledWith({
         where: { id },
+      });
+    });
+
+    describe('createTask', () => {
+      it('should create new task', async () => {
+        const task = {
+          id: 3,
+          title: 'Just a task',
+          description: 'smaill task',
+          done: false,
+        };
+
+        mockPrisma.task.create.mockResolvedValue(null);
+        mockPrisma.task.findUniqueOrThrow.mockResolvedValue(task);
+
+        const { id, ...newTask } = task;
+
+        const result = service.createTask(newTask);
+
+        await expect(result).resolves.not.toThrow();
+        expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
+        expect(mockPrisma.task.create).toHaveBeenCalledWith({
+          data: newTask,
+        });
+
+        const getLastTaskCreated = service.getOneTask({ id });
+
+        await expect(getLastTaskCreated).resolves.toStrictEqual(task);
+        expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledTimes(1);
+        expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledWith({
+          where: { id },
+        });
+      });
+
+      it('should return BadRequestException in case duplicate unique fields', async () => {
+        const task = {
+          id: 3,
+          title: 'Just a task',
+          description: 'smaill task',
+          done: false,
+        };
+
+        mockPrisma.task.create.mockRejectedValue(new BadRequestException());
+
+        const result = service.createTask(task);
+
+        await expect(result).rejects.toThrow(BadRequestException);
+        expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
+        expect(mockPrisma.task.create).toHaveBeenCalledWith({
+          data: task,
+        });
       });
     });
   });
