@@ -152,7 +152,7 @@ describe('TasksController', () => {
 
   })
 
-  describe("remove", () => {
+  describe("removeTask", () => {
     it('should remove a task', async () => {
       const id = 1;
       mockTasksService.removeTask.mockResolvedValue();
