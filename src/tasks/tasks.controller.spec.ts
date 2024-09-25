@@ -57,10 +57,17 @@ describe('TasksController', () => {
 
   describe('getOneTask', () => {
     it('should return exception from get bad id', async () => {
+      const id = 40;
+
       mockTasksService.getOneTask.mockRejectedValue(new NotFoundException());
-      await expect(controller.getOneTask(50)).rejects.toThrow(
+
+      const result = controller.getOneTask(id);  
+
+      await expect(result).rejects.toThrow(
         NotFoundException,
       );
+      expect(mockTasksService.getOneTask).toHaveBeenCalledTimes(1);
+      expect(mockTasksService.getOneTask).toHaveBeenCalledWith({ id });
     });
 
     it('should get one task by his id', async () => {
