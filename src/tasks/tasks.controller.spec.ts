@@ -5,15 +5,15 @@ import { Task } from './interfaces/tasks.interface';
 import { NotFoundException } from '@nestjs/common';
 import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
 
-
 describe('TasksController', () => {
   let controller: TasksController;
-  const mockTasksService: DeepMockProxy<TasksService> = mockDeep<TasksService>();
+  const mockTasksService: DeepMockProxy<TasksService> =
+    mockDeep<TasksService>();
 
   const taskUpdated: Task = {
     id: 1,
-    title: "test title updated",
-    description: "Simple task 1",
+    title: 'test title updated',
+    description: 'Simple task 1',
     done: false,
   };
 
@@ -24,7 +24,7 @@ describe('TasksController', () => {
         {
           provide: TasksService,
           useValue: mockTasksService,
-        }
+        },
       ],
     }).compile();
 
@@ -36,20 +36,21 @@ describe('TasksController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe("getAllTasks", () => {
+  describe('getAllTasks', () => {
     const tasks: Task[] = [
       {
         id: 1,
-        title: "test task 1",
-        description: "Simple task 1",
+        title: 'test task 1',
+        description: 'Simple task 1',
         done: false,
       },
       {
         id: 2,
-        title: "test task 2",
-        description: "Simple task 2",
+        title: 'test task 2',
+        description: 'Simple task 2',
         done: true,
-      }];
+      },
+    ];
 
     it('should return list of tasks', async () => {
       mockTasksService.getAllTasks.mockResolvedValue(tasks);
@@ -59,20 +60,22 @@ describe('TasksController', () => {
       expect(result).toEqual(tasks);
       expect(mockTasksService.getAllTasks).toHaveBeenCalledTimes(1);
     });
-  })
+  });
 
-  describe("getOneTask", () => {
+  describe('getOneTask', () => {
     it('should return exception from get bad id', async () => {
       mockTasksService.getOneTask.mockRejectedValue(new NotFoundException());
-      await expect(controller.getOneTask(50)).rejects.toThrow(NotFoundException);
+      await expect(controller.getOneTask(50)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should get one task by his id', async () => {
       const id = 1;
       const task: Task = {
         id: 1,
-        title: "test task 1",
-        description: "Simple task 1",
+        title: 'test task 1',
+        description: 'Simple task 1',
         done: false,
       };
 
@@ -86,13 +89,13 @@ describe('TasksController', () => {
     });
   });
 
-  describe("updateTasks", () => {
+  describe('updateTasks', () => {
     it('should update a task', async () => {
       const id = 1;
       const task: Task = {
         id: 1,
-        title: "test task 1 updated",
-        description: "Simple task 1",
+        title: 'test task 1 updated',
+        description: 'Simple task 1',
         done: false,
       };
 
@@ -100,8 +103,8 @@ describe('TasksController', () => {
         id: 1,
         title: 'test title updated',
         description: task.description,
-        done: task.done
-      }
+        done: task.done,
+      };
 
       mockTasksService.updateTask.mockResolvedValue(task);
       mockTasksService.getOneTask.mockResolvedValue(task);
@@ -112,14 +115,16 @@ describe('TasksController', () => {
 
       expect(await controller.getOneTask(id)).toEqual(task);
       expect(mockTasksService.updateTask).toHaveBeenCalledTimes(1);
-      expect(mockTasksService.updateTask).toHaveBeenCalledWith({ where: { id: id }, data: {
-        id: 1,
-        title: 'test title updated',
-        description: task.description,
-        done: task.done
-      }
-     });
-    })
+      expect(mockTasksService.updateTask).toHaveBeenCalledWith({
+        where: { id: id },
+        data: {
+          id: 1,
+          title: 'test title updated',
+          description: task.description,
+          done: task.done,
+        },
+      });
+    });
 
     it('should return NotFoundException if update get bad task id', async () => {
       const id = 50;
@@ -130,15 +135,15 @@ describe('TasksController', () => {
 
       await expect(result).rejects.toThrow(NotFoundException);
     });
-  })
+  });
 
-  describe("createTask", () => {
+  describe('createTask', () => {
     it('should return new task created', async () => {
       const task = {
-        title: "test task 1",
-        description: "Simple task 1",
+        title: 'test task 1',
+        description: 'Simple task 1',
         done: false,
-      }
+      };
       mockTasksService.createTask.mockResolvedValue();
 
       await expect(controller.createTask(task)).resolves.not.toThrow();
@@ -149,10 +154,9 @@ describe('TasksController', () => {
         done: task.done,
       });
     });
+  });
 
-  })
-
-  describe("removeTask", () => {
+  describe('removeTask', () => {
     it('should remove a task', async () => {
       const id = 1;
       mockTasksService.removeTask.mockResolvedValue();
@@ -161,5 +165,5 @@ describe('TasksController', () => {
       expect(mockTasksService.removeTask).toHaveBeenCalledTimes(1);
       expect(mockTasksService.removeTask).toHaveBeenCalledWith({ id });
     });
-  })
+  });
 });

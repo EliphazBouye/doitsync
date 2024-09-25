@@ -6,19 +6,19 @@ import { NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
-
 describe('TasksService', () => {
   let service: TasksService;
   const mockPrisma: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TasksService,
-		  {
-        provide: PrismaService,
-        useValue: mockPrisma,
-      }
-		 ],
+      providers: [
+        TasksService,
+        {
+          provide: PrismaService,
+          useValue: mockPrisma,
+        },
+      ],
     }).compile();
 
     service = module.get<TasksService>(TasksService);
@@ -31,20 +31,20 @@ describe('TasksService', () => {
   });
 
   describe('getAllTasks', () => {
-    it("should return all existing tasks", async () => {
+    it('should return all existing tasks', async () => {
       const tasks: Task[] = [
         {
           id: 1,
-          title: "test task 1",
-          description: "Simple task 1",
+          title: 'test task 1',
+          description: 'Simple task 1',
           done: false,
         },
         {
           id: 2,
-          title: "test task 2",
-          description: "Simple task 2",
+          title: 'test task 2',
+          description: 'Simple task 2',
           done: true,
-        }
+        },
       ];
 
       mockPrisma.task.findMany.mockResolvedValue(tasks);
@@ -54,28 +54,27 @@ describe('TasksService', () => {
       expect(mockPrisma.task.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it("should return empty array if task not exist yet", async () => {
+    it('should return empty array if task not exist yet', async () => {
       mockPrisma.task.findMany.mockResolvedValue([]);
 
       const result = await service.getAllTasks();
       expect(result).toEqual([]);
       expect(mockPrisma.task.findMany).toHaveBeenCalledTimes(1);
-    })
+    });
+  });
 
-  })
-
-  describe("getOneTask", () => {
-    it("should return one tasks", () => {
+  describe('getOneTask', () => {
+    it('should return one tasks', () => {
       const task: Task = {
-          id: 1,
-          title: "test task 1",
-          description: "Simple task 1",
-          done: false,
-        }
+        id: 1,
+        title: 'test task 1',
+        description: 'Simple task 1',
+        done: false,
+      };
 
-      mockPrisma.task.findUniqueOrThrow.mockResolvedValue(task)
+      mockPrisma.task.findUniqueOrThrow.mockResolvedValue(task);
 
-      const result = service.getOneTask({id: task.id})
+      const result = service.getOneTask({ id: task.id });
 
       expect(result).resolves.toEqual(task);
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledTimes(1);
@@ -84,8 +83,10 @@ describe('TasksService', () => {
       });
     });
 
-    it("should throw NotFoundException if no user exists with id given", async () => {
-      mockPrisma.task.findUniqueOrThrow.mockRejectedValue(new NotFoundException());
+    it('should throw NotFoundException if no user exists with id given', async () => {
+      mockPrisma.task.findUniqueOrThrow.mockRejectedValue(
+        new NotFoundException(),
+      );
 
       const result = service.getOneTask({ id: 1 });
 
@@ -95,6 +96,6 @@ describe('TasksService', () => {
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-    })
-  })
+    });
+  });
 });

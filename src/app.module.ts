@@ -4,8 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-  }), TasksModule, DatabaseModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TasksModule,
+    DatabaseModule,
+  ],
 })
 export class AppModule {}
