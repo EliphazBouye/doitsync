@@ -5,6 +5,7 @@ import { Task } from './interfaces/tasks.interface';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -83,9 +84,15 @@ describe('TasksService', () => {
     });
 
     it('should throw NotFoundException if no user exists with id given', async () => {
-      mockPrisma.task.findUniqueOrThrow.mockRejectedValue(
-        new NotFoundException(),
+      const prismaError = new PrismaClientKnownRequestError(
+        'Task with is id not exist ',
+        {
+          code: 'P2025',
+          clientVersion: '3.0.0',
+        },
       );
+
+      mockPrisma.task.findUniqueOrThrow.mockRejectedValue(prismaError);
 
       const result = service.getOneTask({ id: 1 });
 
@@ -136,7 +143,16 @@ describe('TasksService', () => {
         description: 'Simple task 1',
         done: false,
       };
-      mockPrisma.task.update.mockRejectedValue(new NotFoundException());
+
+      const prismaError = new PrismaClientKnownRequestError(
+        'Task witht is id not exist ',
+        {
+          code: 'P2025',
+          clientVersion: '3.0.0',
+        },
+      );
+
+      mockPrisma.task.update.mockRejectedValue(prismaError);
 
       const result = service.updateTask({ where: { id }, data: taskUpdated });
 
@@ -163,9 +179,17 @@ describe('TasksService', () => {
       });
     });
 
-    it('should remove a task', async () => {
+    it('should return NoFoundException if bad task id given', async () => {
       const id = 50;
-      mockPrisma.task.delete.mockRejectedValue(new NotFoundException());
+      const prismaError = new PrismaClientKnownRequestError(
+        'Task with is id not exist ',
+        {
+          code: 'P2025',
+          clientVersion: '3.0.0',
+        },
+      );
+
+      mockPrisma.task.delete.mockRejectedValue(prismaError);
 
       const result = service.removeTask({ id });
 
@@ -215,7 +239,16 @@ describe('TasksService', () => {
           done: false,
         };
 
-        mockPrisma.task.create.mockRejectedValue(new BadRequestException());
+        const prismaError = new PrismaClientKnownRequestError(
+          'There is a unique constraint violation, a new user cannot be created with this title',
+          {
+            code: 'P2002',
+            clientVersion: '3.0.0',
+            meta: { target: ['title'] },
+          },
+        );
+
+        mockPrisma.task.create.mockRejectedValue(prismaError);
 
         const result = service.createTask(task);
 

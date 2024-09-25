@@ -38,13 +38,14 @@ export class TasksService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          if (error.meta.target instanceof Array) {
-            error.meta.target.forEach((t) => {
-              throw new BadRequestException(
-                `There is a unique constraint violation, a new user cannot be created with this ${t}`,
-              );
-            });
-          }
+          const fields =
+            (error.meta.target instanceof Array &&
+              error.meta?.target?.join(', ')) ||
+            'unknown fields';
+
+          throw new BadRequestException(
+            `There is a unique constraint violation, a new user cannot be created with this ${fields}`,
+          );
         }
       }
       throw error;
