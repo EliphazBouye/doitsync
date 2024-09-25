@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
-import { PrismaService } from 'src/database/prisma.service';
 import { Task } from './interfaces/tasks.interface';
 import { NotFoundException } from '@nestjs/common';
 import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
-import { PrismaClient } from '@prisma/client';
-import { describe } from 'node:test';
+
 
 describe('TasksController', () => {
   let controller: TasksController;
