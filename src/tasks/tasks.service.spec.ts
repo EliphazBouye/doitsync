@@ -4,7 +4,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { Task } from './interfaces/tasks.interface';
 import { NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -22,8 +22,7 @@ describe('TasksService', () => {
     }).compile();
 
     service = module.get<TasksService>(TasksService);
-    mockPrisma.task.findMany.mockClear();
-    mockPrisma.task.findUniqueOrThrow.mockClear();
+    mockClear(mockPrisma);
   });
 
   it('should be defined', () => {
@@ -128,5 +127,26 @@ describe('TasksService', () => {
         data: taskUpdated,
       });
     });
+
+    it("should return NotFoundException when updateTask receive bad id", async () => {
+      const id = 50;
+      const taskUpdated: Task = {
+        id: 1,
+        title: 'test task 1 updated',
+        description: 'Simple task 1',
+        done: false,
+      };
+      mockPrisma.task.update.mockRejectedValue(new NotFoundException());
+
+      const result = service.updateTask({ where: { id }, data: taskUpdated });
+
+      await expect(result).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.task.update).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.task.update).toHaveBeenCalledWith({
+        where: { id },
+        data: taskUpdated,
+      });
+      
+    })
   });
 });
