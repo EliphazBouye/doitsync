@@ -64,10 +64,10 @@ export class TasksService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new BadRequestException(error.meta?.cause);
+          throw new NotFoundException(error.meta?.cause);
         }
-        throw error;
       }
+      throw error;
     }
   }
 
@@ -79,7 +79,7 @@ export class TasksService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new BadRequestException(error.meta?.cause);
+          throw new NotFoundException(error.meta?.cause);
         }
       }
       throw error;
