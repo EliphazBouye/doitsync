@@ -13,7 +13,9 @@ export class TasksService {
 
   async getOneTask(taskWhereUniqueInput : Prisma.TaskWhereUniqueInput): Promise<Task> {
     try {
-      return await this.prisma.task.findUniqueOrThrow({ where: taskWhereUniqueInput });
+      return await this.prisma.task.findUniqueOrThrow({
+        where: taskWhereUniqueInput
+      });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -24,7 +26,7 @@ export class TasksService {
     }
   }
 
-  async create(data: Prisma.TaskCreateInput) {
+  async createTask(data: Prisma.TaskCreateInput) {
     try {
       await this.prisma.task.create({ data });
     } catch (error) {
@@ -41,7 +43,7 @@ export class TasksService {
     }
   }
 
-  async update(params: {
+  async updateTask(params: {
     where: Prisma.TaskWhereUniqueInput,
     data: Prisma.TaskUpdateInput
   }): Promise<Task> {
@@ -61,7 +63,7 @@ export class TasksService {
     }
   }
 
-  async delete(where: Prisma.TaskWhereUniqueInput) {
+  async removeTask(where: Prisma.TaskWhereUniqueInput) {
     try {
       await this.prisma.task.delete({
         where

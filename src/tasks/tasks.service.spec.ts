@@ -3,23 +3,21 @@ import { TasksService } from './tasks.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { Task } from './interfaces/tasks.interface';
 import { NotFoundException } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+
 
 describe('TasksService', () => {
   let service: TasksService;
-  const prismaMock = {
-    task: {
-      findUniqueOrThrow: jest.fn(),
-      findMany: jest.fn(),
-    },
-  }
+  const prismaMock: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [TasksService,
-		   {
-         provide: PrismaService,
-         useValue: prismaMock,
-       }
+		  {
+        provide: PrismaService,
+        useValue: prismaMock,
+      }
 		 ],
     }).compile();
 

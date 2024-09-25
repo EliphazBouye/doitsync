@@ -3,25 +3,14 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { Task } from './interfaces/tasks.interface';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
+import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
+import { PrismaClient } from '@prisma/client';
+import { describe } from 'node:test';
 
 describe('TasksController', () => {
   let controller: TasksController;
-  let service: TasksService;
-  let prisma: PrismaService;
-  const tasks: Task[] = [
-    {
-      id: 1,
-      title: "test task 1",
-      description: "Simple task 1",
-      done: false,
-    },
-    {
-      id: 2,
-      title: "test task 2",
-      description: "Simple task 2",
-      done: true,
-    }];
+  const mockTasksService: DeepMockProxy<TasksService> = mockDeep<TasksService>();
 
   const taskUpdated: Task = {
     id: 1,
@@ -33,67 +22,146 @@ describe('TasksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
-      providers: [TasksService, PrismaService],
+      providers: [
+        {
+          provide: TasksService,
+          useValue: mockTasksService,
+        }
+      ],
     }).compile();
 
-    service = module.get<TasksService>(TasksService);
     controller = module.get<TasksController>(TasksController);
-    prisma = module.get<PrismaService>(PrismaService);
+    mockClear(mockTasksService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return list of tasks', async () => {
-    jest.spyOn(service, 'getAllTasks').mockImplementation(async () => tasks);
+  describe("getAllTasks", () => {
+    const tasks: Task[] = [
+      {
+        id: 1,
+        title: "test task 1",
+        description: "Simple task 1",
+        done: false,
+      },
+      {
+        id: 2,
+        title: "test task 2",
+        description: "Simple task 2",
+        done: true,
+      }];
 
-    expect(await controller.getAllTasks()).toBe(tasks);
-  });
+    it('should return list of tasks', async () => {
+      mockTasksService.getAllTasks.mockResolvedValue(tasks);
 
-  it('should return exception from get bad id', async () => {
-    await expect(controller.getOneTask(50)).rejects.toThrow(NotFoundException);
-  });
+      const result = await controller.getAllTasks();
 
-  it('should return on task, get from his id', async () => {
-    jest.spyOn(service, 'getOneTask').mockImplementation(async () => tasks[0]);
-
-    expect(await controller.getOneTask(0)).toBe(tasks[0]);
-    expect(await service.getOneTask({ id: 0 })).toBe(tasks[0]);
-  });
-
-  it('update a task', async () => {
-    jest.spyOn(controller, 'update').mockImplementation(async () => taskUpdated);
-    jest.spyOn(controller, 'getOneTask').mockImplementation(async () => taskUpdated);
-
-    expect(await controller.update(1, {
-      title: 'test title updated',
-      description: tasks[0].description,
-      done: tasks[0].done
-    }))
-      .toBe(taskUpdated);
-
-    expect(await controller.getOneTask(1)).toBe(taskUpdated);
+      expect(result).toEqual(tasks);
+      expect(mockTasksService.getAllTasks).toHaveBeenCalledTimes(1);
+    });
   })
 
-  it('return exception in update in case of bad task id', async () => {
-    await expect(controller.update(50, taskUpdated)).rejects.toThrow(BadRequestException);
+  describe("getOneTask", () => {
+    it('should return exception from get bad id', async () => {
+      mockTasksService.getOneTask.mockRejectedValue(new NotFoundException());
+      await expect(controller.getOneTask(50)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should get one task by his id', async () => {
+      const id = 1;
+      const task: Task = {
+        id: 1,
+        title: "test task 1",
+        description: "Simple task 1",
+        done: false,
+      };
+
+      mockTasksService.getOneTask.mockResolvedValue(task);
+
+      const result = controller.getOneTask(id);
+
+      await expect(result).resolves.toEqual(task);
+      expect(mockTasksService.getOneTask).toHaveBeenCalledTimes(1);
+      expect(mockTasksService.getOneTask).toHaveBeenCalledWith({ id });
+    });
   });
 
-  it('should return new task created', async () => {
-    controller.create = jest.fn().mockResolvedValue(null);
+  describe("updateTasks", () => {
+    it('should update a task', async () => {
+      const id = 1;
+      const task: Task = {
+        id: 1,
+        title: "test task 1 updated",
+        description: "Simple task 1",
+        done: false,
+      };
 
-    await expect(controller.create({
-      title: "test task 1",
-      description: "Simple task 1",
-      done: false,
-    })).resolves.not.toThrow();
-  });
+      const updateInput = {
+        id: 1,
+        title: 'test title updated',
+        description: task.description,
+        done: task.done
+      }
 
-  it('delete a task', async () => {
-    controller.remove = jest.fn().mockResolvedValue(null);
+      mockTasksService.updateTask.mockResolvedValue(task);
+      mockTasksService.getOneTask.mockResolvedValue(task);
 
-    await expect(controller.remove(1)).resolves.not.toThrow();
-  });
+      const result = await controller.updateTask(id, updateInput);
 
+      expect(result).toEqual(task);
+
+      expect(await controller.getOneTask(id)).toEqual(task);
+      expect(mockTasksService.updateTask).toHaveBeenCalledTimes(1);
+      expect(mockTasksService.updateTask).toHaveBeenCalledWith({ where: { id: id }, data: {
+        id: 1,
+        title: 'test title updated',
+        description: task.description,
+        done: task.done
+      }
+     });
+    })
+
+    it('should return NotFoundException if update get bad task id', async () => {
+      const id = 50;
+
+      mockTasksService.updateTask.mockRejectedValue(new NotFoundException());
+
+      const result = controller.updateTask(id, taskUpdated);
+
+      await expect(result).rejects.toThrow(NotFoundException);
+    });
+  })
+
+  describe("createTask", () => {
+    it('should return new task created', async () => {
+      const task = {
+        title: "test task 1",
+        description: "Simple task 1",
+        done: false,
+      }
+      mockTasksService.createTask.mockResolvedValue();
+
+      await expect(controller.createTask(task)).resolves.not.toThrow();
+      expect(mockTasksService.createTask).toHaveBeenCalledTimes(1);
+      expect(mockTasksService.createTask).toHaveBeenCalledWith({
+        title: task.title,
+        description: task.description,
+        done: task.done,
+      });
+    });
+
+  })
+
+  describe("remove", () => {
+    it('should remove a task', async () => {
+      const id = 1;
+      mockTasksService.removeTask.mockResolvedValue();
+
+      await expect(controller.removeTask(id)).resolves.not.toThrow();
+      expect(mockTasksService.removeTask).toHaveBeenCalledTimes(1);
+      expect(mockTasksService.removeTask).toHaveBeenCalledWith({ id });
+    });
+  })
 });
