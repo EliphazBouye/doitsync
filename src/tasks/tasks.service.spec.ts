@@ -98,4 +98,35 @@ describe('TasksService', () => {
       });
     });
   });
+
+  describe('updateTask', () => {
+    it('should update a task', async () => {
+      const id = 1;
+      const taskUpdated: Task = {
+        id: 1,
+        title: 'test task 1 updated',
+        description: 'Simple task 1',
+        done: false,
+      };
+
+      const task: Task = {
+        id: 1,
+        title: 'test task 1',
+        description: 'Simple task 1',
+        done: false,
+      };
+
+      mockPrisma.task.update.mockResolvedValue(taskUpdated);
+
+      const result = service.updateTask({ where: { id }, data: taskUpdated });
+
+      await expect(result).resolves.toEqual(taskUpdated);
+      await expect(result).resolves.not.toEqual(task);
+      expect(mockPrisma.task.update).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.task.update).toHaveBeenCalledWith({
+        where: { id },
+        data: taskUpdated,
+      });
+    });
+  });
 });

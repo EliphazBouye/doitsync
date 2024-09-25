@@ -10,13 +10,6 @@ describe('TasksController', () => {
   const mockTasksService: DeepMockProxy<TasksService> =
     mockDeep<TasksService>();
 
-  const taskUpdated: Task = {
-    id: 1,
-    title: 'test title updated',
-    description: 'Simple task 1',
-    done: false,
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
@@ -94,26 +87,25 @@ describe('TasksController', () => {
       const id = 1;
       const task: Task = {
         id: 1,
-        title: 'test task 1 updated',
+        title: 'test task 1',
         description: 'Simple task 1',
         done: false,
       };
 
-      const updateInput = {
+      const taskUpdated = {
         id: 1,
         title: 'test title updated',
         description: task.description,
         done: task.done,
       };
 
-      mockTasksService.updateTask.mockResolvedValue(task);
-      mockTasksService.getOneTask.mockResolvedValue(task);
+      mockTasksService.updateTask.mockResolvedValue(taskUpdated);
+      mockTasksService.getOneTask.mockResolvedValue(taskUpdated);
 
-      const result = await controller.updateTask(id, updateInput);
+      const result = controller.updateTask(id, taskUpdated);
 
-      expect(result).toEqual(task);
-
-      expect(await controller.getOneTask(id)).toEqual(task);
+      await expect(result).resolves.toEqual(taskUpdated);
+      await expect(result).resolves.not.toEqual(task);
       expect(mockTasksService.updateTask).toHaveBeenCalledTimes(1);
       expect(mockTasksService.updateTask).toHaveBeenCalledWith({
         where: { id: id },
@@ -128,6 +120,12 @@ describe('TasksController', () => {
 
     it('should return NotFoundException if update get bad task id', async () => {
       const id = 50;
+      const taskUpdated: Task = {
+        id: 1,
+        title: 'test task 1',
+        description: 'Simple task 1',
+        done: false,
+      };
 
       mockTasksService.updateTask.mockRejectedValue(new NotFoundException());
 
