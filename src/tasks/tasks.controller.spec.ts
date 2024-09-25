@@ -61,11 +61,9 @@ describe('TasksController', () => {
 
       mockTasksService.getOneTask.mockRejectedValue(new NotFoundException());
 
-      const result = controller.getOneTask(id);  
+      const result = controller.getOneTask(id);
 
-      await expect(result).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(result).rejects.toThrow(NotFoundException);
       expect(mockTasksService.getOneTask).toHaveBeenCalledTimes(1);
       expect(mockTasksService.getOneTask).toHaveBeenCalledWith({ id });
     });

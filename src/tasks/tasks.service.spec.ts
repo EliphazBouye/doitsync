@@ -128,7 +128,7 @@ describe('TasksService', () => {
       });
     });
 
-    it("should return NotFoundException when updateTask receive bad id", async () => {
+    it('should return NotFoundException when updateTask receive bad id', async () => {
       const id = 50;
       const taskUpdated: Task = {
         id: 1,
@@ -146,7 +146,34 @@ describe('TasksService', () => {
         where: { id },
         data: taskUpdated,
       });
-      
-    })
+    });
+  });
+
+  describe('removeTask', () => {
+    it('should remove a task', async () => {
+      const id = 1;
+      mockPrisma.task.delete.mockResolvedValue(null);
+
+      const result = service.removeTask({ id });
+
+      await expect(result).resolves.not.toThrow(NotFoundException);
+      expect(mockPrisma.task.delete).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.task.delete).toHaveBeenCalledWith({
+        where: { id },
+      });
+    });
+
+    it('should remove a task', async () => {
+      const id = 50;
+      mockPrisma.task.delete.mockRejectedValue(new NotFoundException());
+
+      const result = service.removeTask({ id });
+
+      await expect(result).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.task.delete).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.task.delete).toHaveBeenCalledWith({
+        where: { id },
+      });
+    });
   });
 });

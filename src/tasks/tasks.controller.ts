@@ -23,7 +23,7 @@ export class TasksController {
   }
 
   @Get(':id')
-  async getOneTask(@Param('id', ParseIntPipe) id: number)  {
+  async getOneTask(@Param('id', ParseIntPipe) id: number) {
     return await this.tasksService.getOneTask({ id });
   }
 
