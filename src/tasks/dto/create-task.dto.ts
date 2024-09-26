@@ -10,4 +10,6 @@ export class CreateTaskDto {
 
   @IsBoolean()
   done: boolean;
+
+  author: any;
 }
