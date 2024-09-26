@@ -6,10 +6,12 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DeepMockProxy, mockClear, mockDeep } from 'jest-mock-extended';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { UsersService } from 'src/users/users.service';
 
 describe('TasksService', () => {
   let service: TasksService;
   const mockPrisma: DeepMockProxy<PrismaClient> = mockDeep<PrismaClient>();
+  const mockUserService: DeepMockProxy<UsersService> = mockDeep<UsersService>();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,11 +21,16 @@ describe('TasksService', () => {
           provide: PrismaService,
           useValue: mockPrisma,
         },
+        {
+          provide: UsersService,
+          useValue: mockUserService,
+        },
       ],
     }).compile();
 
     service = module.get<TasksService>(TasksService);
     mockClear(mockPrisma);
+    mockClear(mockUserService);
   });
 
   it('should be defined', () => {
@@ -38,12 +45,18 @@ describe('TasksService', () => {
           title: 'test task 1',
           description: 'Simple task 1',
           done: false,
+          authorId: 1,
+          createdAt: new Date(),
+          updatedAt: new Date()
         },
         {
           id: 2,
           title: 'test task 2',
           description: 'Simple task 2',
           done: true,
+          authorId: 1,
+          createdAt: new Date(),
+          updatedAt: new Date()
         },
       ];
 
@@ -70,6 +83,9 @@ describe('TasksService', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockPrisma.task.findUniqueOrThrow.mockResolvedValue(task);
@@ -80,6 +96,7 @@ describe('TasksService', () => {
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledTimes(1);
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: task.id },
+        include: { author: true }
       });
     });
 
@@ -101,6 +118,7 @@ describe('TasksService', () => {
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledTimes(1);
       expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: 1 },
+        include: { author: true }
       });
     });
   });
@@ -113,6 +131,9 @@ describe('TasksService', () => {
         title: 'test task 1 updated',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       const task: Task = {
@@ -120,6 +141,9 @@ describe('TasksService', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockPrisma.task.update.mockResolvedValue(taskUpdated);
@@ -132,6 +156,7 @@ describe('TasksService', () => {
       expect(mockPrisma.task.update).toHaveBeenCalledWith({
         where: { id },
         data: taskUpdated,
+        include: { author: true }
       });
     });
 
@@ -142,6 +167,9 @@ describe('TasksService', () => {
         title: 'test task 1 updated',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       const prismaError = new PrismaClientKnownRequestError(
@@ -161,6 +189,7 @@ describe('TasksService', () => {
       expect(mockPrisma.task.update).toHaveBeenCalledWith({
         where: { id },
         data: taskUpdated,
+        include: { author: true }
       });
     });
   });
@@ -207,8 +236,24 @@ describe('TasksService', () => {
           title: 'Just a task',
           description: 'smaill task',
           done: false,
+          authorId: 1,
+          author: { connect: { id: 1 } },
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
 
+        const user = {
+          id: 1,
+          firstName: "John",
+          lastName: "Doe",
+          email: "johndoe@gmail.com",
+          password: "test1234",
+          emailVerifiedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+
+        mockUserService.getUser.mockResolvedValue(user);
         mockPrisma.task.create.mockResolvedValue(null);
         mockPrisma.task.findUniqueOrThrow.mockResolvedValue(task);
 
@@ -220,6 +265,7 @@ describe('TasksService', () => {
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
         expect(mockPrisma.task.create).toHaveBeenCalledWith({
           data: newTask,
+          include: { author: true }
         });
 
         const getLastTaskCreated = service.getOneTask({ id });
@@ -237,7 +283,22 @@ describe('TasksService', () => {
           title: 'Just a task',
           description: 'smaill task',
           done: false,
+          authorId: 1,
+          author: { connect: { id: 1 } },
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
+
+        const user = {
+          id: 1,
+          firstName: "John",
+          lastName: "Doe",
+          email: "johndoe@gmail.com",
+          password: "test1234",
+          emailVerifiedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
 
         const prismaError = new PrismaClientKnownRequestError(
           'There is a unique constraint violation, a new user cannot be created with this title',
@@ -249,13 +310,22 @@ describe('TasksService', () => {
         );
 
         mockPrisma.task.create.mockRejectedValue(prismaError);
+        mockUserService.getUser.mockResolvedValue(user);
 
         const result = service.createTask(task);
 
         await expect(result).rejects.toThrow(BadRequestException);
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
         expect(mockPrisma.task.create).toHaveBeenCalledWith({
-          data: task,
+          data: {
+            task,
+            author: {
+              connect: {
+                id: task.author.connect.id
+              }
+            }
+            ,
+          }
         });
       });
     });
