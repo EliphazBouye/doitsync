@@ -36,12 +36,18 @@ describe('TasksController', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
       {
         id: 2,
         title: 'test task 2',
         description: 'Simple task 2',
         done: true,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
     ];
 
@@ -75,6 +81,9 @@ describe('TasksController', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockTasksService.getOneTask.mockResolvedValue(task);
@@ -95,6 +104,9 @@ describe('TasksController', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       const taskUpdated = {
@@ -102,6 +114,9 @@ describe('TasksController', () => {
         title: 'test title updated',
         description: task.description,
         done: task.done,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockTasksService.updateTask.mockResolvedValue(taskUpdated);
@@ -115,10 +130,7 @@ describe('TasksController', () => {
       expect(mockTasksService.updateTask).toHaveBeenCalledWith({
         where: { id: id },
         data: {
-          id: 1,
-          title: 'test title updated',
-          description: task.description,
-          done: task.done,
+          ...taskUpdated
         },
       });
     });
@@ -130,6 +142,9 @@ describe('TasksController', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockTasksService.updateTask.mockRejectedValue(new NotFoundException());
@@ -146,15 +161,17 @@ describe('TasksController', () => {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
+        authorId: 1,
+        author: { connect: { id: 1 } },
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
       mockTasksService.createTask.mockResolvedValue();
 
       await expect(controller.createTask(task)).resolves.not.toThrow();
       expect(mockTasksService.createTask).toHaveBeenCalledTimes(1);
       expect(mockTasksService.createTask).toHaveBeenCalledWith({
-        title: task.title,
-        description: task.description,
-        done: task.done,
+        ...task
       });
     });
   });
