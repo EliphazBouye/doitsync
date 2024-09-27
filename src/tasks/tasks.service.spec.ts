@@ -231,12 +231,13 @@ describe('TasksService', () => {
 
     describe('createTask', () => {
       it('should create new task', async () => {
+        const authorId = 1
         const task = {
           id: 3,
           title: 'Just a task',
           description: 'smaill task',
           done: false,
-          authorId: 1,
+          authorId,
           author: { connect: { id: 1 } },
           createdAt: new Date(),
           updatedAt: new Date()
@@ -259,7 +260,7 @@ describe('TasksService', () => {
 
         const { id, ...newTask } = task;
 
-        const result = service.createTask(newTask);
+        const result = service.createTask(authorId, newTask);
 
         await expect(result).resolves.not.toThrow();
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
@@ -278,12 +279,13 @@ describe('TasksService', () => {
       });
 
       it('should return BadRequestException in case duplicate unique fields', async () => {
+        const authorId = 1;
         const task = {
           id: 3,
           title: 'Just a task',
           description: 'smaill task',
           done: false,
-          authorId: 1,
+          authorId,
           author: { connect: { id: 1 } },
           createdAt: new Date(),
           updatedAt: new Date()
@@ -312,7 +314,7 @@ describe('TasksService', () => {
         mockPrisma.task.create.mockRejectedValue(prismaError);
         mockUserService.getUser.mockResolvedValue(user);
 
-        const result = service.createTask(task);
+        const result = service.createTask(authorId, task);
 
         await expect(result).rejects.toThrow(BadRequestException);
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);

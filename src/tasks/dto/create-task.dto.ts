@@ -1,4 +1,5 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { Prisma } from '@prisma/client';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
@@ -11,5 +12,5 @@ export class CreateTaskDto {
   @IsBoolean()
   done: boolean;
 
-  author: any;
+  author: Prisma.UserCreateNestedOneWithoutTasksInput;
 }

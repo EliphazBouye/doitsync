@@ -1,5 +1,4 @@
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
-import { CreateTaskDto } from './create-task.dto';
 
 export class UpdateTaskDto {
   @IsString()

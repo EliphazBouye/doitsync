@@ -157,18 +157,19 @@ describe('TasksController', () => {
 
   describe('createTask', () => {
     it('should return new task created', async () => {
+      const authorId = 1
       const task = {
         title: 'test task 1',
         description: 'Simple task 1',
         done: false,
-        authorId: 1,
+        authorId,
         author: { connect: { id: 1 } },
         createdAt: new Date(),
         updatedAt: new Date()
       };
       mockTasksService.createTask.mockResolvedValue();
 
-      await expect(controller.createTask(task)).resolves.not.toThrow();
+      await expect(controller.createTask(authorId, task)).resolves.not.toThrow();
       expect(mockTasksService.createTask).toHaveBeenCalledTimes(1);
       expect(mockTasksService.createTask).toHaveBeenCalledWith({
         ...task

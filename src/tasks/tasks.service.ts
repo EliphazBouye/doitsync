@@ -11,7 +11,7 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService,
-							private readonly usersService: UsersService) {}
+    private readonly usersService: UsersService) { }
 
   async getAllTasks(): Promise<Task[]> {
     return await this.prisma.task.findMany();
@@ -23,9 +23,9 @@ export class TasksService {
     try {
       return await this.prisma.task.findUniqueOrThrow({
         where: taskWhereUniqueInput,
-				include: {
-					author: true
-				}
+        include: {
+          author: true
+        }
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -37,26 +37,27 @@ export class TasksService {
     }
   }
 
-  async createTask(createTaskDto: Prisma.TaskCreateInput) {
+  async createTask(userId: number, createTaskDto: Prisma.TaskCreateInput) {
     try {
-			const author = await this.usersService.getUser({
-				id: createTaskDto.author.connect.id
-			})
+      const author = await this.usersService.getUser({
+        id: userId
+      })
 
-			if (!author) {
-				throw new NotFoundException('User not found!');
-			}
+      if (!author) {
+        throw new NotFoundException('User not found!');
+      }
 
-      await this.prisma.task.create({ data:
-				{
-					...createTaskDto,
-					author: { 
-						connect: {
-							id: createTaskDto.author.connect.id
-						}
-					},
-				}
-			});
+      await this.prisma.task.create({
+        data:
+        {
+          ...createTaskDto,
+          author: {
+            connect: {
+              id: author.id
+            }
+          },
+        }
+      });
 
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -82,12 +83,12 @@ export class TasksService {
     try {
       const { where, data } = params;
       return await this.prisma.task.update({
-				where,
-				data,
-				include: {
-					author: true
-				}
-			});
+        where,
+        data,
+        include: {
+          author: true
+        }
+      });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
