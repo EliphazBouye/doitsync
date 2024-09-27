@@ -265,7 +265,6 @@ describe('TasksService', () => {
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
         expect(mockPrisma.task.create).toHaveBeenCalledWith({
           data: newTask,
-          include: { author: true }
         });
 
         const getLastTaskCreated = service.getOneTask({ id });
@@ -274,6 +273,7 @@ describe('TasksService', () => {
         expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledTimes(1);
         expect(mockPrisma.task.findUniqueOrThrow).toHaveBeenCalledWith({
           where: { id },
+          include: { author: true }
         });
       });
 
@@ -318,13 +318,7 @@ describe('TasksService', () => {
         expect(mockPrisma.task.create).toHaveBeenCalledTimes(1);
         expect(mockPrisma.task.create).toHaveBeenCalledWith({
           data: {
-            task,
-            author: {
-              connect: {
-                id: task.author.connect.id
-              }
-            }
-            ,
+            ...task,
           }
         });
       });
