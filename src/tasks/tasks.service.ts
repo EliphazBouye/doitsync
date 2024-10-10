@@ -10,22 +10,25 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService,
-    private readonly usersService: UsersService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async getAllTasks(): Promise<Task[]> {
     return await this.prisma.task.findMany();
   }
 
   async getOneTask(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     taskWhereUniqueInput: Prisma.TaskWhereUniqueInput,
   ): Promise<Task> {
     try {
       return await this.prisma.task.findUniqueOrThrow({
-        where: taskWhereUniqueInput,
-        include: {
-          author: true
-        }
+        where: {
+          id: taskWhereUniqueInput.id,
+          authorId: userWhereUniqueInput.id,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -40,25 +43,23 @@ export class TasksService {
   async createTask(userId: number, createTaskDto: Prisma.TaskCreateInput) {
     try {
       const author = await this.usersService.getUser({
-        id: userId
-      })
+        id: userId,
+      });
 
       if (!author) {
         throw new NotFoundException('User not found!');
       }
 
       await this.prisma.task.create({
-        data:
-        {
+        data: {
           ...createTaskDto,
           author: {
             connect: {
-              id: author.id
-            }
+              id: author.id,
+            },
           },
-        }
+        },
       });
-
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -86,8 +87,8 @@ export class TasksService {
         where,
         data,
         include: {
-          author: true
-        }
+          author: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {

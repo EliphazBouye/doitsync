@@ -18,7 +18,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('tasks')
 export class TasksController {
-  constructor(private tasksService: TasksService) { }
+  constructor(private tasksService: TasksService) {}
 
   @Get()
   @UseGuards(AuthGuard)
@@ -28,13 +28,22 @@ export class TasksController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  async getOneTask(@Param('id', ParseIntPipe) id: number) {
-    return await this.tasksService.getOneTask({ id });
+  async getOneTask(
+    @Request() req: any,
+    @Param('id', ParseIntPipe) taskId: number,
+  ): Promise<Task> {
+    const payload = await req['user'];
+    const userId = payload.sub;
+
+    return await this.tasksService.getOneTask(userId, { id: taskId });
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  async createTask(@Request() req: any, @Body() createTaskDto: CreateTaskDto): Promise<void> {
+  async createTask(
+    @Request() req: any,
+    @Body() createTaskDto: CreateTaskDto,
+  ): Promise<void> {
     const payload = await req['user'];
     const userId = payload.sub;
 
