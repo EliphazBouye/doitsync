@@ -19,15 +19,16 @@ export class TasksService {
         return await this.prisma.task.findMany();
     }
 
-    async getOneTask(
-        userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-        taskWhereUniqueInput: Prisma.TaskWhereUniqueInput,
-    ): Promise<Task> {
+    async getOneTask(params: {
+        user: Prisma.UserWhereUniqueInput,
+        task: Prisma.TaskWhereUniqueInput,
+    }): Promise<Task> {
+        const { user, task } = params;
         try {
             return await this.prisma.task.findUniqueOrThrow({
                 where: {
-                    id: taskWhereUniqueInput.id,
-                    authorId: userWhereUniqueInput.id,
+                    id: task.id,
+                    authorId: user.id,
                 },
             });
         } catch (error) {
@@ -40,10 +41,10 @@ export class TasksService {
         }
     }
 
-    async createTask(userId: number, createTaskDto: Prisma.TaskCreateInput) {
+    async createTask(user: Prisma.UserWhereUniqueInput, createTaskDto: Prisma.TaskCreateInput) {
         try {
             const author = await this.usersService.getUser({
-                id: userId,
+                id: user.id,
             });
 
             if (!author) {
@@ -104,10 +105,17 @@ export class TasksService {
         }
     }
 
-    async removeTask(where: Prisma.TaskWhereUniqueInput) {
+    async removeTask(params: {
+        user: Prisma.UserWhereUniqueInput,
+        task: Prisma.TaskWhereUniqueInput
+    }) {
+        const { user, task } = params;
         try {
             await this.prisma.task.delete({
-                where,
+                where: {
+                    id: task.id,
+                    authorId: user.id,
+                },
             });
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {

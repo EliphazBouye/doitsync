@@ -35,7 +35,10 @@ export class TasksController {
         const payload = await req['user'];
         const userId = payload.sub;
 
-        return await this.tasksService.getOneTask(userId, { id: taskId });
+        return await this.tasksService.getOneTask({
+            user: { id: userId },
+            task: { id: taskId }
+        });
     }
 
     @Post()
@@ -68,7 +71,11 @@ export class TasksController {
 
     @Delete(':id')
     @UseGuards(AuthGuard)
-    async removeTask(@Param('id', ParseIntPipe) id: number): Promise<void> {
-        await this.tasksService.removeTask({ id });
+    async removeTask(
+        @Request() req: any,
+        @Param('id', ParseIntPipe) id: number): Promise<void> {
+        const payload = req['user'];
+        const userId = payload.sub;
+        await this.tasksService.removeTask({ user: { id: userId }, task: { id } });
     }
 }
