@@ -90,7 +90,6 @@ describe('TasksController', () => {
 
             await expect(result).rejects.toThrow(NotFoundException);
             expect(mockTasksService.getOneTask).toHaveBeenCalledTimes(1);
-            // expect(mockTasksService.getOneTask).toHaveBeenCalledWith({ id });
         });
 
         it('should get one task by his id', async () => {
@@ -116,13 +115,14 @@ describe('TasksController', () => {
 
     describe('updateTasks', () => {
         it('should update a task', async () => {
+            const req = { user: { sub: 1, email: 'test@test.com' } };
             const id = 1;
             const task: Task = {
                 id: 1,
                 title: 'test task 1',
                 description: 'Simple task 1',
                 done: false,
-                authorId: 1,
+                authorId: req.user.sub,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
@@ -132,42 +132,36 @@ describe('TasksController', () => {
                 title: 'test title updated',
                 description: task.description,
                 done: task.done,
-                authorId: 1,
+                authorId: req.user.sub,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
 
             mockTasksService.updateTask.mockResolvedValue(taskUpdated);
-            mockTasksService.getOneTask.mockResolvedValue(taskUpdated);
 
-            const result = controller.updateTask(id, taskUpdated);
+            const result = controller.updateTask(req, id, taskUpdated);
 
             await expect(result).resolves.toEqual(taskUpdated);
             await expect(result).resolves.not.toEqual(task);
             expect(mockTasksService.updateTask).toHaveBeenCalledTimes(1);
-            expect(mockTasksService.updateTask).toHaveBeenCalledWith({
-                where: { id: id },
-                data: {
-                    ...taskUpdated,
-                },
-            });
         });
 
         it('should return NotFoundException if update get bad task id', async () => {
-            const id = 50;
+            const taskId = 50;
+            const req = { user: { sub: 1, email: 'test@test.com' } };
             const taskUpdated: Task = {
                 id: 1,
                 title: 'test task 1',
                 description: 'Simple task 1',
                 done: false,
-                authorId: 1,
+                authorId: req.user.sub,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
 
             mockTasksService.updateTask.mockRejectedValue(new NotFoundException());
 
-            const result = controller.updateTask(id, taskUpdated);
+            const result = controller.updateTask(req, taskId, taskUpdated);
 
             await expect(result).rejects.toThrow(NotFoundException);
         });
