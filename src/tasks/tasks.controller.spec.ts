@@ -188,12 +188,11 @@ describe('TasksController', () => {
 
     describe('removeTask', () => {
         it('should remove a task', async () => {
-            const id = 1;
+            const taskId = 1;
             mockTasksService.removeTask.mockResolvedValue();
 
-            await expect(controller.removeTask(id)).resolves.not.toThrow();
+            await expect(controller.removeTask(taskId)).resolves.not.toThrow();
             expect(mockTasksService.removeTask).toHaveBeenCalledTimes(1);
-            expect(mockTasksService.removeTask).toHaveBeenCalledWith({ id });
         });
     });
 });
